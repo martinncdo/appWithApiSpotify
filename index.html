@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        main {
+            display: flex;
+            flex-direction: row-reverse;
+        }
+
+        main > * {
+            flex-basis: 50%;
+        }
+
+        .loader {
+            display: none;  
+            margin: auto;              
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media screen and(min-width: 800px){
+            main {
+                flex-direction: row;
+            }
+
+            main > * {
+                padding: 1rem;
+                flex-basis: 50%;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <h1>Buscador de canciones</h1>
+    <form id="song-search">
+        <input type="text" name="artist" required>
+        <br>
+        <input type="text" name="song" required>
+        <br>
+        <input type="submit">
+    </form>
+    <img src="../../assets/loader.svg" alt="" class="loader">
+    <aside class="error"></aside>
+    <main>
+        <article class="artist">
+            <h2>Información del artista</h2>
+        </article>
+        <article class="song">
+            <h2>Letra de la canción</h2>
+        </article>
+    </main>
+    <script>
+        
+        async function res() {
+            let res = await fetch("https://www.theaudiodb.com/api/v1/json/2/search.php?s=coldplay");
+            let json = await res.json();
+            console.log(json.artists);
+        };
+    
+        
+        const d = document,
+        $form = d.getElementById("song-search"),
+        $loader = d.querySelector(".loader"),
+        $error = d.querySelector(".error"),
+        $main = d.querySelector("main"),
+        $artist = d.querySelector(".artist"),
+        $song = d.querySelector(".song");
+
+        d.addEventListener("DOMContentLoaded", e => {
+            res();
+        });
+        
+        $form.addEventListener("submit", async e => {
+            e.preventDefault();
+
+            try {
+                $loader.style.display = "block";
+
+                let artist = e.target.artist.value.toLowerCase,
+                    song = e.target.song.value,
+                    $artistTemplate = "",
+                    $songTemplate = "",
+                    artistAPI = `https://theaudiodb.com/api/v1/json/2/search.php?s=${artist}`,
+                    songAPI = `https://api.lyrics.ovh/v1/${artist}/${song}`,
+                    artistFetch = fetch(artistAPI),
+                    songFetch = fetch(songAPI);
+                    [artistRes, songRes] = await Promise.all([artistFetch, songFetch]),
+                    artistData = await artistRes.json(),
+                    songData = await songRes.json();
+
+                    console.log(artistRes, songRes);
+                    console.log(artistData, songData);
+
+
+            }catch (err) {
+                let message = err.statusText || "Ocurrió un error";
+                $error.innerHTML = `<p>${err.status}: ${message}</p>`;
+                $loader.style.display = "none";
+            };
+        });
+    </script>
+</body>
+</html>
